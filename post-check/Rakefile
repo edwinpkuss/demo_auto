@@ -1,0 +1,22 @@
+RAILS_ENV = RACK_ENV = 'test'
+
+require 'ci/reporter/rake/rspec'
+require 'rspec/core/rake_task'
+
+desc 'Run all smoke tests'
+RSpec::Core::RakeTask.new(:all) do |task|
+  task.fail_on_error = true
+  options = ['--order random', '--fail-fast']
+  options << "--seed #{ENV['SEED']}" if ENV['SEED']
+  task.rspec_opts = options.join(' ')
+end
+
+desc 'Run all smoke tests for CI environment.'
+task :ci do
+  ENV['CI_REPORTS'] = 'tmp/ci_reports'
+  options = ['--order random', '--fail-fast']
+  options << "--seed #{ENV['SEED']}" if ENV['SEED']
+  Rake::Task['parallel:spec'].invoke(nil, 'spec/features', options.join(' '))
+end
+
+task :default => [:all]
